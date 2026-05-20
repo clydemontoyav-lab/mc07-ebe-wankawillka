@@ -301,7 +301,7 @@ const FALLBACK=[{"ugel": "ACOBAMBA", "ie": "CEBE N° 35004", "docente": "CAMAREN
 
 let user=null,userUGEL=null,selUGEL=null;
 let DATA=[];
-let SHEET_URL=localStorage.getItem('mc07_sheet_url')||'';
+let SHEET_URL=localStorage.getItem('mc07_sheet_url')||'https://script.google.com/macros/s/AKfycbzgGCr62JHzX5FJ6bkZuyzpmEzViJ6FeInuC5IXVZIlgcW5rNlgJz0Wm45FB21Pdo2Y3w/exec';
 const CARGOS_EXCLUIDOS=['auxiliar','personal de servicio','psicóloga','psicologa','trabajador social'];
 
 function normalizar(raw){
@@ -338,9 +338,15 @@ async function loadFromSheets(){
     return;
   }
   try{
-    const url=SHEET_URL+'?t='+Date.now();
-    const res=await fetch(url);
-    const json=await res.json();
+    const url=SHEET_URL+'?callback=__mc07cb&t='+Date.now();
+    const json=await new Promise((resolve,reject)=>{
+      const s=document.createElement('script');
+      window.__mc07cb=(d)=>{delete window.__mc07cb;document.head.removeChild(s);resolve(d);};
+      s.onerror=()=>reject(new Error('load'));
+      s.src=url;
+      document.head.appendChild(s);
+      setTimeout(()=>reject(new Error('timeout')),15000);
+    });
     if(json.ok&&json.data&&json.data.length>0){
       DATA=normalizar(json.data);
       const hora=new Date().toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
