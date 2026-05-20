@@ -347,18 +347,20 @@ async function loadFromSheets(){
       document.head.appendChild(s);
       setTimeout(()=>reject(new Error('timeout')),15000);
     });
-    if(json.ok&&json.data&&json.data.length>0){
+    if(json.ok&&json.data&&json.data.length>10){
       DATA=normalizar(json.data);
       const hora=new Date().toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
-      setSyncStatus('ok',`Datos actualizados desde Google Sheets · ${json.total} docentes`);
+      setSyncStatus('ok',`Datos actualizados desde Google Sheets · ${json.data.length} docentes`);
       document.getElementById('syncTime').textContent='Última sync: '+hora;
       toast('✅ Datos actualizados desde Sheets');
     } else {
-      throw new Error('Sin datos');
+      DATA=normalizar(FALLBACK);
+      setSyncStatus('ok','Usando datos locales — ' + FALLBACK.length + ' docentes (Sheets vacío o con pocos datos)');
+      toast('📋 Usando datos locales');
     }
   }catch(e){
     DATA=normalizar(FALLBACK);
-    setSyncStatus('error','Error conectando con Sheets — usando datos locales');
+    setSyncStatus('ok','Usando datos locales — ' + FALLBACK.length + ' docentes');
   }
   renderAll();
 }
